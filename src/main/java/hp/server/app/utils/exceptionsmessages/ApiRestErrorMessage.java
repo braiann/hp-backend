@@ -7,5 +7,6 @@ public class ApiRestErrorMessage {
     public static final String PERSON_EXISTS_BY_DOCUMENT = "El DNI del usuario ya existe";
     public static final String PHONE_NUMBER_INVALID = "El telefono no puede contener caracteres alfabeticos";
     public static final String EXISTS_PERSON_BY_EMAIL = "Existe un usuario registrado con el email: ";
+    public static final String EXISTS_PERSON_BY_USERNAME = "Existe un usuario registrado con el nombre de usuario: ";
     public static final String CITY_INVALID = "La localidad no existe";
 }

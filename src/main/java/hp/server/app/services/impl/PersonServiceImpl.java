@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepository> implements PersonService {
@@ -56,6 +57,11 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
             throw new Exception(ApiRestErrorMessage.EXISTS_PERSON_BY_EMAIL + entity.getEmail());
         }
 
+        Optional<Person> exitsPersonByUsername = personRepository.findByUsername(entity.getUsername());
+        if (exitsPersonByUsername.isPresent()) {
+            throw new Exception(ApiRestErrorMessage.EXISTS_PERSON_BY_USERNAME);
+        }
+
         // In this step find role and set to entity object before save
         Role role = entity.getRole();
 
@@ -81,8 +87,11 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
             }
         }
 
-        Address addressDB = addressService.save(entity.getAddress());
-        entity.setAddress(addressDB);
+        if (entity.getAddress() != null) {
+            Address addressDB = addressService.save(entity.getAddress());
+            entity.setAddress(addressDB);
+        }
+
         // TODO: encode password
 
         Person personDB = super.save(entity);

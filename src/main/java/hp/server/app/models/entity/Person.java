@@ -40,6 +40,10 @@ public class Person {
     @NotEmpty
     @NotBlank
     private String phoneNumber;
+    @Column(name = "username")
+    @NotNull
+    @NotBlank
+    private String username;
     @Column(name = "email")
     @NotEmpty
     @NotBlank
