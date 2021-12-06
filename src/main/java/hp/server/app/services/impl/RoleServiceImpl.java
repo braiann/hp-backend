@@ -18,7 +18,7 @@ public class RoleServiceImpl extends CommonServiceImpl<Role, RoleRepository> imp
 
     @Override
     public Role getByDescription(String description) {
-        logger.info("Ingresa a findByDescription");
+        logger.info("Enter to findByDescription");
         return roleRepository.findByDescription(description);
     }
 }

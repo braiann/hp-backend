@@ -30,7 +30,7 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
 
     @Override
     public Person save(Person entity) throws Exception {
-        logger.info("Ingresa a save()");
+        logger.info("Enter to save()");
 
         if (StringUtil.cadContainsDigit(entity.getFirstName()) || StringUtil.cadContainsDigit(entity.getLastName())) {
             throw new Exception(ApiRestErrorMessage.FIRSTNAME_OR_LASTNAME_CONTAINS_DIGITS);

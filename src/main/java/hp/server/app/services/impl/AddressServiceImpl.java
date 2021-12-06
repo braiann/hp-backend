@@ -25,7 +25,7 @@ public class AddressServiceImpl extends CommonServiceImpl<Address, AddressReposi
 
     @Override
     public Address save(Address entity) throws Exception {
-        logger.info("Ingresa a save()");
+        logger.info("Enter to save()");
         Optional<City> city = cityService.findById(entity.getCity().getId());
         if (city.isEmpty()) {
             throw new Exception(ApiRestErrorMessage.CITY_INVALID);
