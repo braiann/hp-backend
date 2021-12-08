@@ -13,6 +13,7 @@ import nrt.common.microservice.services.impl.CommonServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,8 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
     private RoleService roleService;
     @Autowired
     private AddressService addressService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public Person save(Person entity) throws Exception {
@@ -93,6 +96,7 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
         }
 
         // TODO: encode password
+        entity.setPassword(passwordEncoder.encode(entity.getPassword()));
 
         Person personDB = super.save(entity);
         // TODO: send email after registration if a registration is ok
