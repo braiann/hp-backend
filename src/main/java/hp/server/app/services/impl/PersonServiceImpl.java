@@ -99,8 +99,6 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
 
         Person personDB = super.save(entity);
-        // TODO: send email after registration if a registration is ok
-
         return personDB;
     }
 }

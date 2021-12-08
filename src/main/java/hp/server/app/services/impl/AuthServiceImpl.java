@@ -7,6 +7,7 @@ import hp.server.app.security.jwt.JwtUtils;
 import hp.server.app.security.services.UserDetailsImpl;
 import hp.server.app.services.AuthService;
 import hp.server.app.services.PersonService;
+import hp.server.app.utils.email.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ public class AuthServiceImpl implements AuthService {
     private JwtUtils jwtUtils;
     @Autowired
     private PersonService personService;
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public JwtResponseDTO authenticateUser(Authentication authentication) {
@@ -48,6 +51,12 @@ public class AuthServiceImpl implements AuthService {
         logger.info("Enter to saveNewUser()");
         try {
             Person newPerson = personService.save(person);
+            if (newPerson != null) {
+                // TODO: send email after registration if a registration is ok
+                emailService.sendEmail(newPerson.getEmail(), "Bienvenido",
+                        "La registracion ha sido exitosa!");
+            }
+
             return new MessageResponse("User registered successfully");
         } catch (Exception e) {
             return new MessageResponse(e.getMessage());
