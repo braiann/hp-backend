@@ -5,19 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class JwtResponseDTO {
+public class RefreshTokenResponseDTO {
 
-    private Long id;
-    private String username;
-    private String email;
-    private List<String> roles;
     private String accessToken;
     private String refreshToken;
-    private String type = "Bearer";
+    private String tokenType = "Bearer";
 }

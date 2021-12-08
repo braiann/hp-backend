@@ -9,4 +9,5 @@ public class ApiRestErrorMessage {
     public static final String EXISTS_PERSON_BY_EMAIL = "Existe un usuario registrado con el email: ";
     public static final String EXISTS_PERSON_BY_USERNAME = "Existe un usuario registrado con el nombre de usuario: ";
     public static final String CITY_INVALID = "La localidad no existe";
+    public static final String PERSON_ID_NOT_EXISTS = "No existe un usuario con el ID: ";
 }

@@ -3,10 +3,12 @@ package hp.server.app.services.impl;
 import hp.server.app.models.dto.response.JwtResponseDTO;
 import hp.server.app.models.dto.response.MessageResponse;
 import hp.server.app.models.entity.Person;
+import hp.server.app.models.entity.RefreshToken;
 import hp.server.app.security.jwt.JwtUtils;
 import hp.server.app.security.services.UserDetailsImpl;
 import hp.server.app.services.AuthService;
 import hp.server.app.services.PersonService;
+import hp.server.app.services.RefreshTokenService;
 import hp.server.app.utils.email.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,8 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
+    private RefreshTokenService refreshTokenService;
+    @Autowired
     private PersonService personService;
     @Autowired
     private EmailService emailService;
@@ -32,18 +36,28 @@ public class AuthServiceImpl implements AuthService {
     public JwtResponseDTO authenticateUser(Authentication authentication) {
         logger.info("Enter to authenticateUser()");
 
-        String accessToken = jwtUtils.generateJwtToken(authentication);
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream().map(role -> role.getAuthority()).collect(Collectors.toList());
+        try {
+            String accessToken = jwtUtils.generateJwtToken(authentication);
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<String> roles = userDetails.getAuthorities().stream().map(role -> role.getAuthority()).collect(Collectors.toList());
 
-        return new JwtResponseDTO(
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles,
-                accessToken,
-                "Bearer"
-        );
+            // Generate a refresh token por response
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+
+            return new JwtResponseDTO(
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    roles,
+                    accessToken,
+                    refreshToken.getToken(),
+                    "Bearer"
+            );
+        } catch (Exception e) {
+            logger.error("An error occurred");
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
