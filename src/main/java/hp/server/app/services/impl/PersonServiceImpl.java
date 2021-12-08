@@ -101,4 +101,17 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
         Person personDB = super.save(entity);
         return personDB;
     }
+
+    @Override
+    public Person getByEmail(String email) {
+        logger.info("Enter to getByEmail()");
+        return personRepository.findByEmail(email);
+    }
+
+    @Override
+    public void updatePersonPassword(Person person) {
+        logger.info("Enter to updatePersonPassword()");
+        person.setPassword(passwordEncoder.encode(person.getPassword()));
+        personRepository.save(person);
+    }
 }

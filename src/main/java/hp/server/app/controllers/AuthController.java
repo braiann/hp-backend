@@ -1,6 +1,7 @@
 package hp.server.app.controllers;
 
 import hp.server.app.models.dto.request.LoginRequestDTO;
+import hp.server.app.models.dto.request.PasswordRequestDTO;
 import hp.server.app.models.dto.request.RefreshTokenRequestDTO;
 import hp.server.app.models.dto.response.MessageResponse;
 import hp.server.app.models.dto.response.RefreshTokenResponseDTO;
@@ -20,10 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -89,6 +87,30 @@ public class AuthController {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(null);
         return ResponseEntity.ok(new MessageResponse("Logout successfully!"));
+    }
+
+    @PostMapping("/password/forgotpassword")
+    public ResponseEntity<?> forgotPassword(@RequestParam("email") String email) {
+        logger.info("Enter to forgotPassword()");
+        try {
+            authService.requestPasswordChange(email);
+            return ResponseEntity.accepted().body(new MessageResponse("Se ha enviado un codigo de restablecimiento de contraseña a tu email"));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.internalServerError().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/password/resetpassword")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordRequestDTO passwordRequestDTO) {
+        logger.info("Enter to resetPassword()");
+        try {
+            authService.resetPassword(passwordRequestDTO);
+            return ResponseEntity.ok().body(new MessageResponse("Su contrasñea se ha modificado correctamente!"));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.internalServerError().body(new MessageResponse(e.getMessage()));
+        }
     }
 
 }
