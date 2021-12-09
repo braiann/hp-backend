@@ -11,6 +11,7 @@ import hp.server.app.security.jwt.JwtUtils;
 import hp.server.app.services.AuthService;
 import hp.server.app.services.RefreshTokenService;
 import hp.server.app.utils.exceptions.RefreshTokenException;
+import nrt.common.microservice.exceptions.CommonBusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,9 @@ public class AuthController {
         try {
             authService.requestPasswordChange(email);
             return ResponseEntity.accepted().body(new MessageResponse("Se ha enviado un codigo de restablecimiento de contraseña a tu email"));
+        } catch (CommonBusinessException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.internalServerError().body(new MessageResponse(e.getMessage()));
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.internalServerError().body(new MessageResponse(e.getMessage()));
@@ -107,6 +111,9 @@ public class AuthController {
         try {
             authService.resetPassword(passwordRequestDTO);
             return ResponseEntity.ok().body(new MessageResponse("Su contrasñea se ha modificado correctamente!"));
+        } catch (CommonBusinessException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.internalServerError().body(new MessageResponse(e.getMessage()));
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.internalServerError().body(new MessageResponse(e.getMessage()));

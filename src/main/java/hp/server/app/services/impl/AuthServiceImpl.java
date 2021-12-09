@@ -15,6 +15,7 @@ import hp.server.app.services.RefreshTokenService;
 import hp.server.app.utils.StringUtil;
 import hp.server.app.utils.email.EmailService;
 import hp.server.app.utils.exceptionsmessages.ApiRestErrorMessage;
+import nrt.common.microservice.exceptions.CommonBusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,12 +94,12 @@ public class AuthServiceImpl implements AuthService {
 
         // First valid if the email has a correct format
         if (!StringUtil.validEmail(email)) {
-            throw new Exception(ApiRestErrorMessage.EMAIL_INVALID);
+            throw new CommonBusinessException(ApiRestErrorMessage.EMAIL_INVALID);
         }
 
         Person person = personService.getByEmail(email);
         if (person == null) {
-            throw new Exception(ApiRestErrorMessage.PERSON_NOT_EXIST_BY_EMAIL);
+            throw new CommonBusinessException(ApiRestErrorMessage.PERSON_NOT_EXIST_BY_EMAIL);
         }
 
         String codeReset = "";
@@ -128,17 +129,17 @@ public class AuthServiceImpl implements AuthService {
         // Receive the passwordReset object by code;
         PasswordReset passwordReset = passwordResetRepository.findByCode(passwordRequestDTO.getCode());
         if (passwordReset == null || passwordReset.getCode().isEmpty()) {
-            throw new Exception(ApiRestErrorMessage.CODE_RESET_PASSWORD_INVALID);
+            throw new CommonBusinessException(ApiRestErrorMessage.CODE_RESET_PASSWORD_INVALID);
         }
 
         // TODO: Valid if the code not expired
         if (isCodeExpired(passwordReset)) {
-            throw new Exception(ApiRestErrorMessage.CODE_EXPIRED);
+            throw new CommonBusinessException(ApiRestErrorMessage.CODE_EXPIRED);
         }
 
         // TODO: Valid if the both password are the same
         if (!confirmPassword(passwordRequestDTO.getNewPassword(), passwordRequestDTO.getConfirmPassword())) {
-            throw new Exception(ApiRestErrorMessage.ERROR_PASSWORD_NOT_EQUALS);
+            throw new CommonBusinessException(ApiRestErrorMessage.ERROR_PASSWORD_NOT_EQUALS);
         }
 
         Person person = passwordReset.getPerson();

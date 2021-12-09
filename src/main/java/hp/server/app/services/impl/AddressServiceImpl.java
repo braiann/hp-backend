@@ -6,6 +6,7 @@ import hp.server.app.models.repository.AddressRepository;
 import hp.server.app.services.AddressService;
 import hp.server.app.services.CityService;
 import hp.server.app.utils.exceptionsmessages.ApiRestErrorMessage;
+import nrt.common.microservice.exceptions.CommonBusinessException;
 import nrt.common.microservice.services.impl.CommonServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class AddressServiceImpl extends CommonServiceImpl<Address, AddressReposi
         logger.info("Enter to save()");
         Optional<City> city = cityService.findById(entity.getCity().getId());
         if (city.isEmpty()) {
-            throw new Exception(ApiRestErrorMessage.CITY_INVALID);
+            throw new CommonBusinessException(ApiRestErrorMessage.CITY_INVALID);
         }
         entity.setCity(city.get());
         return super.save(entity);

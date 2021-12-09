@@ -9,6 +9,7 @@ import hp.server.app.services.PersonService;
 import hp.server.app.services.RoleService;
 import hp.server.app.utils.StringUtil;
 import hp.server.app.utils.exceptionsmessages.ApiRestErrorMessage;
+import nrt.common.microservice.exceptions.CommonBusinessException;
 import nrt.common.microservice.services.impl.CommonServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,32 +38,32 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
         logger.info("Enter to save()");
 
         if (StringUtil.cadContainsDigit(entity.getFirstName()) || StringUtil.cadContainsDigit(entity.getLastName())) {
-            throw new Exception(ApiRestErrorMessage.FIRSTNAME_OR_LASTNAME_CONTAINS_DIGITS);
+            throw new CommonBusinessException(ApiRestErrorMessage.FIRSTNAME_OR_LASTNAME_CONTAINS_DIGITS);
         }
 
         LocalDateTime currentDay = LocalDateTime.now();
         if (entity.getBirthDate().isAfter(currentDay)) {
-            throw new Exception(ApiRestErrorMessage.BIRTH_DATE_INVALID);
+            throw new CommonBusinessException(ApiRestErrorMessage.BIRTH_DATE_INVALID);
         }
 
         Person personByDocumentNumber = personRepository.findByDocumentNumber(entity.getDocumentNumber());
         if (personByDocumentNumber != null) {
-            throw new Exception(ApiRestErrorMessage.PERSON_EXISTS_BY_DOCUMENT);
+            throw new CommonBusinessException(ApiRestErrorMessage.PERSON_EXISTS_BY_DOCUMENT);
         }
 
         if (StringUtil.cadContainsLetters(entity.getPhoneNumber())) {
-            throw new Exception(ApiRestErrorMessage.PHONE_NUMBER_INVALID);
+            throw new CommonBusinessException(ApiRestErrorMessage.PHONE_NUMBER_INVALID);
         }
 
         // Valid if exists a person/user with email
         Person existsPerson = personRepository.findByEmail(entity.getEmail());
         if (existsPerson != null) {
-            throw new Exception(ApiRestErrorMessage.EXISTS_PERSON_BY_EMAIL + entity.getEmail());
+            throw new CommonBusinessException(ApiRestErrorMessage.EXISTS_PERSON_BY_EMAIL + entity.getEmail());
         }
 
         Optional<Person> exitsPersonByUsername = personRepository.findByUsername(entity.getUsername());
         if (exitsPersonByUsername.isPresent()) {
-            throw new Exception(ApiRestErrorMessage.EXISTS_PERSON_BY_USERNAME);
+            throw new CommonBusinessException(ApiRestErrorMessage.EXISTS_PERSON_BY_USERNAME);
         }
 
         // In this step find role and set to entity object before save
