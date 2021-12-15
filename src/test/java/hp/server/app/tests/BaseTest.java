@@ -33,6 +33,7 @@ public class BaseTest {
     protected Long PERSON_ID;
     protected Person person;
     protected String accessToken;
+    protected String refreshToken;
 
     @Autowired
     protected ProvinceRepository provinceRepository;

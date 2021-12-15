@@ -2,12 +2,15 @@ package hp.server.app.tests.controllers;
 
 import hp.server.app.HpServerApplication;
 import hp.server.app.models.dto.request.LoginRequestDTO;
+import hp.server.app.models.dto.request.RefreshTokenRequestDTO;
 import hp.server.app.models.dto.response.JwtResponseDTO;
 import hp.server.app.models.dto.response.MessageResponse;
+import hp.server.app.models.dto.response.RefreshTokenResponseDTO;
 import hp.server.app.models.entity.Person;
 import hp.server.app.models.repository.PersonRepository;
 import hp.server.app.models.repository.RefreshTokenRepository;
 import hp.server.app.tests.BaseTest;
+import hp.server.app.utils.exceptions.RefreshTokenException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,13 +27,13 @@ public class AuthControllerTest extends BaseTest {
 
     private static final String MESSAGE_REGISTER_OK = "User registered successfully";
     private static final String BAD_CREDENTIALS = "Bad Credentials: Username or Password are not valid!";
+    public static final String PERSON_EXISTS_BY_DOCUMENT = "El DNI del usuario ya existe";
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
     private PersonRepository personRepository;
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
-
 
     @BeforeAll
     public void setUp() {
@@ -51,7 +54,7 @@ public class AuthControllerTest extends BaseTest {
 
     @Test
     @Order(1)
-    public void registerNewPersonStatusOkTest() {
+    public void registerNewPerson_statusOkTest() {
         System.out.println("----- TEST 1 -----");
         System.out.println("----- Register New Person Successfully -----");
         person = buildPerson();
@@ -84,14 +87,38 @@ public class AuthControllerTest extends BaseTest {
             Assertions.assertEquals(person.getGender(), GENDER_PERSON);
             Assertions.assertEquals(person.getBirthDate(), BIRTDAY_PERSON);
             Assertions.assertEquals(person.getRole().getDescription(), ROLE);
-        } catch (Exception e) {
+        } catch (HttpClientErrorException e) {
             e.printStackTrace();
         }
     }
 
     @Test
     @Order(2)
-    public void loginTestStatusOkTest() {
+    public void registerNewPerson_existByDocumentNumberstatusOkTest() {
+        System.out.println("----- TEST 2 -----");
+        System.out.println("----- Register New Person Error: Exists person email -----");
+        person = buildPerson();
+        try {
+            String url = REST_API_PATH + "/auth/signup";
+
+            // Build the request header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<Object>(person, headers);
+            ResponseEntity<MessageResponse> response = restTemplate.postForEntity(url, entity, MessageResponse.class);
+            MessageResponse messageResponse = response.getBody();
+
+            Assertions.assertNotEquals(response.getStatusCode(), null);
+            Assertions.assertEquals(response.getStatusCode(), HttpStatus.OK);
+            Assertions.assertEquals(messageResponse.getMessage(), PERSON_EXISTS_BY_DOCUMENT);
+        } catch (HttpClientErrorException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    @Order(3)
+    public void login_statusOkTest() {
         System.out.println("----- TEST 2 -----");
         System.out.println("----- Login Person Successfully -----");
         LoginRequestDTO loginRequestDTO = buildLoginRequestDTO(person);
@@ -105,6 +132,9 @@ public class AuthControllerTest extends BaseTest {
             ResponseEntity<JwtResponseDTO> response = restTemplate.postForEntity(url, entity, JwtResponseDTO.class);
             JwtResponseDTO jwtResponseDTO = response.getBody();
 
+            accessToken = jwtResponseDTO.getAccessToken();
+            refreshToken = jwtResponseDTO.getRefreshToken();
+
             Assertions.assertNotEquals(response.getStatusCode(), null);
             Assertions.assertEquals(response.getStatusCode(), HttpStatus.OK);
             Assertions.assertEquals(jwtResponseDTO.getId(), PERSON_ID);
@@ -113,14 +143,14 @@ public class AuthControllerTest extends BaseTest {
             Assertions.assertEquals(jwtResponseDTO.getRoles().size(), 1);
             Assertions.assertEquals(jwtResponseDTO.getType(), "Bearer");
             Assertions.assertNotEquals(jwtResponseDTO.getAccessToken(), null);
-        } catch (Exception e) {
+        } catch (HttpClientErrorException e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    @Order(3)
-    public void loginTestStatusBadRequestTest() {
+    @Order(4)
+    public void login_badCredentials_statusBadRequestTest() {
         System.out.println("----- TEST 3 -----");
         System.out.println("----- Login Person Bad Credentials -----");
         LoginRequestDTO loginRequestDTO = new LoginRequestDTO();
@@ -140,6 +170,56 @@ public class AuthControllerTest extends BaseTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    @Order(5)
+    public void refreshToken_statusOkTest() {
+        System.out.println("----- TEST 5 -----");
+        System.out.println("----- Get Refresh Token Successfully -----");
+        RefreshTokenRequestDTO refreshTokenRequestDTO = new RefreshTokenRequestDTO(refreshToken);
+        try {
+            String url = REST_API_PATH + "/auth/refreshtoken";
+
+            // Build the request header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<Object>(refreshTokenRequestDTO, headers);
+            ResponseEntity<RefreshTokenResponseDTO> response = restTemplate.postForEntity(url, entity, RefreshTokenResponseDTO.class);
+            RefreshTokenResponseDTO refreshTokenResponseDTO = response.getBody();
+
+            Assertions.assertNotEquals(response.getStatusCode(), null);
+            Assertions.assertEquals(response.getStatusCode(), HttpStatus.OK);
+            Assertions.assertEquals(refreshTokenResponseDTO.getRefreshToken(), refreshToken);
+            Assertions.assertEquals(refreshTokenResponseDTO.getTokenType(), "Bearer");
+            Assertions.assertNotEquals(refreshTokenResponseDTO.getAccessToken(), null);
+            Assertions.assertNotEquals(refreshTokenResponseDTO.getAccessToken(), accessToken);
+        } catch (HttpClientErrorException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    @Order(6)
+    public void refreshToken_refreshTokenInvalidTest() {
+        System.out.println("----- TEST 6 -----");
+        System.out.println("----- Get Refresh Token Failure -----");
+        RefreshTokenRequestDTO refreshTokenRequestDTO = new RefreshTokenRequestDTO("refreshTokenFalse");
+        try {
+            String url = REST_API_PATH + "/auth/refreshtoken";
+
+            // Build the request header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<Object>(refreshTokenRequestDTO, headers);
+            ResponseEntity<RefreshTokenResponseDTO> response = restTemplate.postForEntity(url, entity, RefreshTokenResponseDTO.class);
+            RefreshTokenResponseDTO refreshTokenResponseDTO = response.getBody();
+        } catch (RefreshTokenException e) {
+            Assertions.assertEquals(e.getMessage(), "Refresh token is not exists in database!");
+            e.printStackTrace();
+        }
+    }
+
+
 
     private String getMessageResponseFromMessageException(String message) {
         String[] messageSplit = message.split("400");
