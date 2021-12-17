@@ -7,6 +7,7 @@ import hp.server.app.models.dto.response.MessageResponse;
 import hp.server.app.models.dto.response.RefreshTokenResponseDTO;
 import hp.server.app.models.entity.Person;
 import hp.server.app.models.entity.RefreshToken;
+import hp.server.app.models.entity.Role;
 import hp.server.app.security.jwt.JwtUtils;
 import hp.server.app.services.AuthService;
 import hp.server.app.services.RefreshTokenService;
@@ -15,7 +16,9 @@ import nrt.common.microservice.exceptions.CommonBusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -59,7 +62,13 @@ public class AuthController {
     public ResponseEntity<?> registerNewUser(@Valid @RequestBody Person person) {
         logger.info("Enter to registerNewUser()");
         try {
+            Boolean validRole = validRoleIsNull(person.getRole());
+            if (!validRole) {
+                throw new AccessDeniedException("Access Denied to resource!");
+            }
             return ResponseEntity.ok(authService.saveNewUser(person));
+        } catch (AccessDeniedException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
@@ -120,4 +129,8 @@ public class AuthController {
         }
     }
 
+    private boolean validRoleIsNull(Role role) {
+        logger.info("Enter to validRoleIsNull()");
+        return role == null ? true : false;
+    }
 }
