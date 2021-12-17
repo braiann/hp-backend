@@ -7,8 +7,10 @@ import hp.server.app.models.dto.response.JwtResponseDTO;
 import hp.server.app.models.dto.response.MessageResponse;
 import hp.server.app.models.dto.response.RefreshTokenResponseDTO;
 import hp.server.app.models.entity.Person;
+import hp.server.app.models.entity.Role;
 import hp.server.app.models.repository.PersonRepository;
 import hp.server.app.models.repository.RefreshTokenRepository;
+import hp.server.app.models.repository.RoleRepository;
 import hp.server.app.tests.BaseTest;
 import hp.server.app.utils.exceptions.RefreshTokenException;
 import org.junit.jupiter.api.*;
@@ -34,6 +36,8 @@ public class AuthControllerTest extends BaseTest {
     private PersonRepository personRepository;
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
     @BeforeAll
     public void setUp() {
@@ -118,6 +122,28 @@ public class AuthControllerTest extends BaseTest {
 
     @Test
     @Order(3)
+    public void registerNewPerson_RoleAdminWithoutTokenStatusUnauthorizedTest() {
+        System.out.println("----- TEST 2 -----");
+        System.out.println("----- Register New Person Error: Exists person email -----");
+        person = buildPerson();
+        // Set the role admin to object person
+        person.setRole(roleRepository.findByDescription(Role.ROLE_ADMIN));
+        try {
+            String url = REST_API_PATH + "/auth/signup";
+
+            // Build the request header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<Object>(person, headers);
+            ResponseEntity<MessageResponse> response = restTemplate.postForEntity(url, entity, MessageResponse.class);
+        } catch (HttpClientErrorException e) {
+            Assertions.assertEquals(e.getStatusCode(), HttpStatus.UNAUTHORIZED);
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    @Order(4)
     public void login_statusOkTest() {
         System.out.println("----- TEST 2 -----");
         System.out.println("----- Login Person Successfully -----");
@@ -149,7 +175,7 @@ public class AuthControllerTest extends BaseTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     public void login_badCredentials_statusBadRequestTest() {
         System.out.println("----- TEST 3 -----");
         System.out.println("----- Login Person Bad Credentials -----");
@@ -172,7 +198,7 @@ public class AuthControllerTest extends BaseTest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     public void refreshToken_statusOkTest() {
         System.out.println("----- TEST 5 -----");
         System.out.println("----- Get Refresh Token Successfully -----");
@@ -199,7 +225,7 @@ public class AuthControllerTest extends BaseTest {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     public void refreshToken_refreshTokenInvalidTest() {
         System.out.println("----- TEST 6 -----");
         System.out.println("----- Get Refresh Token Failure -----");
