@@ -4,6 +4,7 @@ import hp.server.app.models.entity.Address;
 import hp.server.app.models.entity.Person;
 import hp.server.app.models.entity.Role;
 import hp.server.app.models.repository.PersonRepository;
+import hp.server.app.models.repository.RefreshTokenRepository;
 import hp.server.app.services.AddressService;
 import hp.server.app.services.PersonService;
 import hp.server.app.services.RoleService;
@@ -30,6 +31,8 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
     private RoleService roleService;
     @Autowired
     private AddressService addressService;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -114,5 +117,16 @@ public class PersonServiceImpl extends CommonServiceImpl<Person, PersonRepositor
         logger.info("Enter to updatePersonPassword()");
         person.setPassword(passwordEncoder.encode(person.getPassword()));
         personRepository.save(person);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        logger.info("Enter to deleteById()");
+        Optional<Person> p = personRepository.findById(id);
+        if (!p.isPresent()) {
+            throw new CommonBusinessException(ApiRestErrorMessage.PERSON_NOT_EXISTS_ID);
+        }
+        refreshTokenRepository.deleteByPerson(p.get());
+        personRepository.deleteById(id);
     }
 }

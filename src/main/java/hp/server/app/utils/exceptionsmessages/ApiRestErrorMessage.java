@@ -15,4 +15,5 @@ public class ApiRestErrorMessage {
     public static final String CODE_RESET_PASSWORD_INVALID = "Codigo invalido";
     public static final String CODE_EXPIRED = "Codigo expirado";
     public static final String ERROR_PASSWORD_NOT_EQUALS = "Las contraseñas no coinciden";
+    public static final String PERSON_NOT_EXISTS_ID = "No existe un usuario para el id";
 }
