@@ -8,9 +8,7 @@ import hp.server.app.models.dto.response.MessageResponse;
 import hp.server.app.models.dto.response.RefreshTokenResponseDTO;
 import hp.server.app.models.entity.Person;
 import hp.server.app.models.entity.Role;
-import hp.server.app.models.repository.PersonRepository;
 import hp.server.app.models.repository.RefreshTokenRepository;
-import hp.server.app.models.repository.RoleRepository;
 import hp.server.app.tests.BaseTest;
 import hp.server.app.utils.exceptions.RefreshTokenException;
 import org.junit.jupiter.api.*;
@@ -18,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import com.google.gson.Gson;
 import java.util.Optional;
 
@@ -30,14 +27,6 @@ public class AuthControllerTest extends BaseTest {
     private static final String MESSAGE_REGISTER_OK = "User registered successfully";
     private static final String BAD_CREDENTIALS = "Bad Credentials: Username or Password are not valid!";
     public static final String PERSON_EXISTS_BY_DOCUMENT = "El DNI del usuario ya existe";
-    @Autowired
-    private RestTemplate restTemplate;
-    @Autowired
-    private PersonRepository personRepository;
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-    @Autowired
-    private RoleRepository roleRepository;
 
     @BeforeAll
     public void setUp() {
@@ -48,11 +37,13 @@ public class AuthControllerTest extends BaseTest {
         }
     }
 
+
     @AfterAll
     public void cleanData() {
-        if (personRepository.findByUsername(USERNAME_PERSON).isPresent()) {
+        Optional<Person> personDb = personRepository.findByUsername(USERNAME_PERSON);
+        if (personDb.isPresent()) {
             refreshTokenRepository.deleteAll();
-            personRepository.delete(person);
+            personRepository.delete(personDb.get());
         }
     }
 
@@ -123,8 +114,8 @@ public class AuthControllerTest extends BaseTest {
     @Test
     @Order(3)
     public void registerNewPerson_RoleAdminWithoutTokenStatusUnauthorizedTest() {
-        System.out.println("----- TEST 2 -----");
-        System.out.println("----- Register New Person Error: Exists person email -----");
+        System.out.println("----- TEST 3 -----");
+        System.out.println("----- Register New Person Error: Not includes token into headers -----");
         person = buildPerson();
         // Set the role admin to object person
         person.setRole(roleRepository.findByDescription(Role.ROLE_ADMIN));
@@ -145,7 +136,7 @@ public class AuthControllerTest extends BaseTest {
     @Test
     @Order(4)
     public void login_statusOkTest() {
-        System.out.println("----- TEST 2 -----");
+        System.out.println("----- TEST 4 -----");
         System.out.println("----- Login Person Successfully -----");
         LoginRequestDTO loginRequestDTO = buildLoginRequestDTO(person);
         try {
@@ -177,7 +168,7 @@ public class AuthControllerTest extends BaseTest {
     @Test
     @Order(5)
     public void login_badCredentials_statusBadRequestTest() {
-        System.out.println("----- TEST 3 -----");
+        System.out.println("----- TEST 5 -----");
         System.out.println("----- Login Person Bad Credentials -----");
         LoginRequestDTO loginRequestDTO = new LoginRequestDTO();
         loginRequestDTO.setUsername("FalseUser");
@@ -200,7 +191,7 @@ public class AuthControllerTest extends BaseTest {
     @Test
     @Order(6)
     public void refreshToken_statusOkTest() {
-        System.out.println("----- TEST 5 -----");
+        System.out.println("----- TEST 6 -----");
         System.out.println("----- Get Refresh Token Successfully -----");
         RefreshTokenRequestDTO refreshTokenRequestDTO = new RefreshTokenRequestDTO(refreshToken);
         try {
@@ -227,7 +218,7 @@ public class AuthControllerTest extends BaseTest {
     @Test
     @Order(7)
     public void refreshToken_refreshTokenInvalidTest() {
-        System.out.println("----- TEST 6 -----");
+        System.out.println("----- TEST 7 -----");
         System.out.println("----- Get Refresh Token Failure -----");
         RefreshTokenRequestDTO refreshTokenRequestDTO = new RefreshTokenRequestDTO("refreshTokenFalse");
         try {
