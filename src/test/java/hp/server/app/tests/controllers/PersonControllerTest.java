@@ -1,12 +1,15 @@
 package hp.server.app.tests.controllers;
 
+import com.google.gson.Gson;
 import hp.server.app.HpServerApplication;
+import hp.server.app.models.dto.response.MessageResponse;
 import hp.server.app.models.entity.*;
 import hp.server.app.tests.BaseTest;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ public class PersonControllerTest extends BaseTest {
     private static String ERROR_DOCUMENT_NUMBER_EXISTS = "El DNI del usuario ya existe";
     private static String ERROR_NAME_INVALID = "El nombre y el apellido no pueden contener caracteres numericos";
     private static String ERROR_EXISTS_PERSON_BY_EMAIL = "Existe un usuario registrado con el email: " + EMAIL_PERSON;
+    private static String ERROR_DELETE_BY_ID = "No existe un usuario para el id";
     private List<Person> personList = new ArrayList<>();
     private int SIZE = 5;
 
@@ -287,8 +291,29 @@ public class PersonControllerTest extends BaseTest {
 
     @Test
     @Order(11)
-    public void delete_statusNoContentTest() {
+    public void delete_personNotExistsStatusInternalServerErrorTest() {
         System.out.println("----- TEST 11 -----");
+        System.out.println("----- Try to delete a person by id but this person not exists -----");
+        Long personId = 0L;
+        String url = REST_API_PATH + "/person/" + personId;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + accessToken);
+
+            HttpEntity<Object> entity = new HttpEntity<>(headers);
+            ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, Void.class);
+        } catch (HttpServerErrorException e) {
+            Assertions.assertEquals(e.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+            Assertions.assertEquals(getMessageResponseFromMessageException(e.getMessage()), ERROR_DELETE_BY_ID);
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    @Order(12)
+    public void delete_statusNoContentTest() {
+        System.out.println("----- TEST 12 -----");
         System.out.println("----- Delete with status 204 -----");
         Long personId = maxPersonId - 1;
         String url = REST_API_PATH + "/person/" + personId;
@@ -302,7 +327,6 @@ public class PersonControllerTest extends BaseTest {
 
             Assertions.assertEquals(response.getStatusCode(), HttpStatus.NO_CONTENT);
         } catch (HttpClientErrorException e) {
-            Assertions.assertEquals(e.getStatusCode(), HttpStatus.UNAUTHORIZED);
             e.printStackTrace();
         }
     }
@@ -335,5 +359,11 @@ public class PersonControllerTest extends BaseTest {
         String[] messageSplit = message.split(",");
         String[] messageError = messageSplit[1].split(":");
         return messageError[1].substring(1, messageError[1].length() - 3);
+    }
+
+    private String getMessageResponseFromMessageException(String message) {
+        String[] messageSplit = message.split("500");
+        String messageJson = messageSplit[1].substring(4, messageSplit[1].length() - 1);
+        return messageJson.toString();
     }
 }
