@@ -25,9 +25,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/auth")
@@ -45,7 +48,7 @@ public class AuthController {
 
 
     @PostMapping("/signin")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<?> login(@Validated @RequestBody LoginRequestDTO loginRequestDTO) {
         logger.info("Enter to login()");
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -59,9 +62,13 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerNewUser(@Valid @RequestBody Person person) {
+    public ResponseEntity<?> registerNewUser(@Validated @RequestBody Person person, BindingResult bindingResult) {
         logger.info("Enter to registerNewUser()");
         try {
+            if (bindingResult.hasErrors()) {
+                return validateBody(bindingResult);
+            }
+
             Boolean validRole = validRoleIsNull(person.getRole());
             if (!validRole) {
                 throw new AccessDeniedException("Access Denied to resource!");
@@ -75,7 +82,7 @@ public class AuthController {
     }
 
     @PostMapping("/refreshtoken")
-    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
+    public ResponseEntity<?> refreshToken(@Validated @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
         logger.info("Enter to refreshToken()");
         logger.info("----- Token -> " + refreshTokenRequestDTO.getRefreshToken() + " -----");
 
@@ -115,7 +122,7 @@ public class AuthController {
     }
 
     @PostMapping("/password/resetpassword")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordRequestDTO passwordRequestDTO) {
+    public ResponseEntity<?> resetPassword(@Validated @RequestBody PasswordRequestDTO passwordRequestDTO) {
         logger.info("Enter to resetPassword()");
         try {
             authService.resetPassword(passwordRequestDTO);
@@ -132,5 +139,13 @@ public class AuthController {
     private boolean validRoleIsNull(Role role) {
         logger.info("Enter to validRoleIsNull()");
         return role == null ? true : false;
+    }
+
+    private ResponseEntity<?> validateBody(BindingResult bindingResult) {
+        Map<String, Object> errors = new HashMap<>();
+        bindingResult.getFieldErrors().forEach(err -> {
+            errors.put(err.getField(), "Field " + err.getField() + " " + err.getDefaultMessage());
+        });
+        return ResponseEntity.badRequest().body(errors);
     }
 }
