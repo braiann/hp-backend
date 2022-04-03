@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import java.util.Objects;
 
 @Data
 @NoArgsConstructor
@@ -29,4 +30,11 @@ public class Address {
     @JoinColumn(name = "id_localidad")
     private City city;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Address address1 = (Address) o;
+        return Objects.equals(id, address1.id);
+    }
 }
