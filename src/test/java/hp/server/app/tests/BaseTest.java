@@ -31,7 +31,7 @@ public class BaseTest {
     protected static final String PHONE_NUMBER_PERSON = "12345689";
     protected static final String USERNAME_PERSON = "UserTestJUnit";
     protected static final String EMAIL_PERSON = "emailTestJUnit@gmail.com";
-    protected static final String PASSWORD_PERSON = "12345678";
+    protected static final String PASSWORD_PERSON = "NNTjuan1234568";
     protected static final String NACIONALITY_PERSON = "Argentina";
     protected static final String GENDER_PERSON = "M";
     protected static final String MARITAL_STATUS_PERSON = "Soltero";

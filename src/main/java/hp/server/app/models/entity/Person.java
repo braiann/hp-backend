@@ -52,7 +52,6 @@ public class Person {
     private String email;
     @Column(name = "password")
     @NotEmpty
-    @Size(min = 8)  // 8 characters is a min length for password
     @Password
     private String password;
     @Column(name = "fechanacimiento")
